@@ -37,6 +37,29 @@ class Menu extends Service
             ->order('sort', 'desc')
             ->select()
             ->toArray();
-        return Data::dataToMenuTree($data, $userRuleNode);
+        return self::dataToMenuTree($data, $userRuleNode);
+    }
+
+    /**
+     * 数据转菜单树
+     * @param   array   $data       数据
+     * @param   array   $ruleNode   角色授权节点
+     * @param   int     $pid        父级ID
+     * @return  array
+     */
+    protected static function dataToMenuTree($data, $ruleNode, $pid = 0)
+    {
+        $tree = [];
+        foreach($data as $v) {
+            if ($v['pid'] == $pid) {
+                if ($v['url'] <> '#' && !in_array($v['url'], $ruleNode)) continue;
+                $tmp = $v;
+                $tmp['sub'] = self::dataToMenuTree($data, $ruleNode, $v['id']);
+                if ($tmp['url'] == '#' && empty($tmp['sub'])) continue;
+                if ($tmp['url'] <> '#') $tmp['url'] = "/{$tmp['url']}";
+                $tree[] = $tmp;
+            }
+        }
+        return $tree;
     }
 }
