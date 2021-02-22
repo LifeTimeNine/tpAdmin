@@ -1,0 +1,122 @@
+{extend name="body"}
+
+{block name="button"}
+{if check('add')}
+<button data-modal='{:url("add")}' data-title="添加用户" class='layui-btn layui-btn-sm layui-btn-primary'>添加用户</button>
+{/if}
+{/block}
+
+{block name="search"}
+<fieldset>
+    <legend>条件搜索</legend>
+    <form class="layui-form layui-form-pane form-search" action="{:request()->url()}" onsubmit="return false" method="get" autocomplete="off">
+
+        <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">用户名</label>
+            <div class="layui-input-inline">
+                <input name="username" value="{$Think.get.username|default=''}" placeholder="请输入用户名" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">联系手机</label>
+            <div class="layui-input-inline">
+                <input name="mobile" value="{$Think.get.mobile|default=''}" placeholder="请输入联系手机" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">使用状态</label>
+            <div class="layui-input-inline">
+                <select class="layui-select" name="status">
+                    {foreach [''=>'-- 全部状态 --','2'=>'已禁用的账号','1'=>'使用中的账号'] as $k=>$v}
+                    {eq name='Think.get.status' value='$k.""'}
+                    <option selected value="{$k}">{$v}</option>
+                    {else}
+                    <option value="{$k}">{$v}</option>
+                    {/eq}
+                    {/foreach}
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-form-item layui-inline">
+            <label class="layui-form-label">最后登录时间</label>
+            <div class="layui-input-inline">
+                <input data-date-range name="last_login_time" value="{$Think.get.last_login_time|default=''}" placeholder="请选择时间" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item layui-inline">
+            <button class="layui-btn layui-btn-primary"><i class="layui-icon">&#xe615;</i> 搜 索</button>
+        </div>
+    </form>
+</fieldset>
+<script>form.render()</script>
+{/block}
+
+{block name="body"}
+  {notempty name="list"}
+  <table class="layui-table margin-top-10" lay-skin="line">
+    {notempty name='list'}
+    <thead>
+    <tr>
+        <th class='list-table-check-td think-checkbox'>
+            <label><input data-auto-none data-check-target='.list-check-box' type='checkbox'></label>
+        </th>
+        <th class='text-left nowrap'>用户名</th>
+        <th class='text-left nowrap'>角色</th>
+        <th class='text-left nowrap'>联系手机</th>
+        <th class='text-center nowrap'>登录次数</th>
+        <th class='text-center nowrap'>使用状态</th>
+        <th class='text-left nowrap'>创建时间</th>
+        <th class='text-left nowrap'>最后登录时间</th>
+        <th class='text-left nowrap'>最后登录IP</th>
+        <th class='text-left nowrap'></th>
+    </tr>
+    </thead>
+    {/notempty}
+    <tbody>
+    {foreach $list as $key=>$vo}
+    <tr data-dbclick>
+        <td class='list-table-check-td think-checkbox'>
+            <label><input class="list-check-box" value='{$vo.id}' type='checkbox'></label>
+        </td>
+        <td class='text-left nowrap'>{$vo.username|default=''}</td>
+        <td class='text-left nowrap'>{$vo.rule.name|default=''}</td>
+        <td class='text-left nowrap'>{$vo.mobile|default='-'}</td>
+        <td class='text-center nowrap'>{$vo.login_num|default=0}</td>
+        <td class='text-center nowrap'>{eq name='vo.status' value='2'}<span class="color-red">已禁用</span>{else}<span class="color-green">使用中</span>{/eq}</td>
+        <td class='text-left nowrap'>{$vo.create_time|date="Y-m-d H:i:s"}</td>
+        <td class='text-left nowrap'>{$vo.last_login_time|date="Y-m-d H:i:s"|default="-"}</td>
+        <td class='text-left nowrap'>{$vo.last_login_ip|default="-"}</td>
+        <td class='text-left nowrap'>
+
+            {if check("resetPwd")}
+            <a class="layui-btn layui-btn-normal layui-btn-sm" data-title="重置密码" data-modal='{:url("resetPwd")}?id={$vo.id}'>重置密码</a>
+            {/if}
+
+            {if check("edit")}
+            <a data-dbclick class="layui-btn layui-btn-sm" data-title="编辑用户" data-modal='{:url("edit")}?id={$vo.id}'>编 辑</a>
+            {/if}
+
+            {if $vo.status eq 1 and check("forbid")}
+            <a class="layui-btn layui-btn-sm layui-btn-warm" data-action="{:url('forbid', ['id' => $vo.id])}" data-csrf="{:sysCsrfToken('forbid')}">禁 用</a>
+            {elseif $vo.status eq 2 and check("resume")}
+            <a class="layui-btn layui-btn-sm layui-btn-warm" data-action="{:url('resume', ['id' => $vo.id])}" data-csrf="{:sysCsrfToken('resume')}">启 用</a>
+            {/if}
+
+            {if check("remove")}
+            <a class="layui-btn layui-btn-sm layui-btn-danger" data-confirm="确定要删除该用户吗？" data-action="{:url('remove', ['id' => $vo.id])}" data-csrf="{:sysCsrfToken('remove')}">删 除</a>
+            {/if}
+
+        </td>
+    </tr>
+    {/foreach}
+    </tbody>
+</table>
+  {$page|raw}
+  {else/}
+  <span class="notdata">没有记录哦</span>
+  {/notempty}
+{/block}

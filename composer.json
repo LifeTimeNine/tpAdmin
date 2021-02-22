@@ -1,0 +1,26 @@
+{
+    "name": "lifetime/tpadmin",
+    "description": "tpadmin",
+    "minimum-stability": "dev",
+    "version": "1.0.0",
+    "authors": [
+        {
+            "name": "Lifetime",
+            "email": "2390904403@qq.com"
+        }
+    ],
+    "keywords": [
+        "thinkphp",
+        "admin"
+    ],
+    "license": "MIT",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "tpadmin\\" : "src"
+        },
+        "files": [
+            "src/common.php"
+        ]
+    }
+}

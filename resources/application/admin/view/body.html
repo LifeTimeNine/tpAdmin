@@ -1,0 +1,16 @@
+<div class="layui-card layui-bg-gray">
+  {notempty name="title"}
+  <div class="layui-card-header layui-anim layui-anim-fadein notselect">
+    <span class="layui-icon layui-icon-next font-s10 color-desc margin-right-5"></span>{$title|default=''}
+    <div class="pull-right">{block name='button'}{/block}</div>
+  </div>
+  {/notempty}
+  <div class="layui-card-body layui-anim layui-anim-upbit">
+    <div class="think-box-shadow">
+    {block name="search"}{/block}
+    {block name="body"}{/block}
+    </div>
+    {block name="style"}{/block}
+    {block name="script"}{/block}
+  </div>
+</div>

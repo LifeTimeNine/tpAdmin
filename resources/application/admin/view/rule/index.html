@@ -1,0 +1,113 @@
+{extend name="body"}
+
+{block name="button"}
+{if check('add')}
+<button data-modal='{:url("add")}' data-title="添加权限" class='layui-btn layui-btn-sm layui-btn-primary'>添加权限</button>
+{/if}
+{if check('forbid')}
+<button data-action='{:url("forbid")}' data-rule="id#{key}" data-csrf="{:sysCsrfToken('admin/rule/forbid')}" data-confirm="确定要禁用这些角色吗？" class='layui-btn layui-btn-sm layui-btn-primary'>批量禁用</button>
+{/if}
+{if check('resume')}
+<button class="layui-btn layui-btn-sm layui-btn-warm" data-action='{:url("resume")}' data-rule="id#{key}" data-csrf="{:sysCsrfToken('admin/rule/resume')}" data-confirm="确定要启用这些角色吗？" class='layui-btn layui-btn-sm layui-btn-primary'>批量启用</button>
+{/if}
+{/block}
+
+{block name="search"}
+<fieldset>
+  <legend>条件搜索</legend>
+  <form class="layui-form layui-form-pane form-search" action="{:request()->url()}" onsubmit="return false" method="get" autocomplete="off">
+      <div class="layui-form-item layui-inline">
+          <label class="layui-form-label">角色名称</label>
+          <div class="layui-input-inline">
+              <input name="name" value="{$Think.get.name|default=''}" placeholder="请输入角色名称" class="layui-input">
+          </div>
+      </div>
+      <div class="layui-form-item layui-inline">
+          <label class="layui-form-label">描述描述</label>
+          <div class="layui-input-inline">
+              <input name="desc" value="{$Think.get.desc|default=''}" placeholder="请输入权限描述" class="layui-input">
+          </div>
+      </div>
+      <div class="layui-form-item layui-inline">
+          <label class="layui-form-label">使用状态</label>
+          <div class="layui-input-inline">
+              <select class="layui-select" name="status">
+                  {foreach [''=>'-- 全部状态 --','2'=>'已禁用的角色','1'=>'使用中的角色'] as $k=>$v}
+                  {eq name='Think.get.status' value='$k.""'}
+                  <option selected value="{$k}">{$v}</option>
+                  {else}
+                  <option value="{$k}">{$v}</option>
+                  {/eq}
+                  {/foreach}
+              </select>
+          </div>
+      </div>
+      <div class="layui-form-item layui-inline">
+          <label class="layui-form-label">创建时间</label>
+          <div class="layui-input-inline">
+              <input data-date-range name="create_time" value="{$Think.get.create_time|default=''}" placeholder="请选择创建时间" class="layui-input">
+          </div>
+      </div>
+      <div class="layui-form-item layui-inline">
+          <button class="layui-btn layui-btn-primary"><i class="layui-icon">&#xe615;</i> 搜 索</button>
+      </div>
+  </form>
+</fieldset>
+
+<script>form.render()</script>
+{/block}
+
+{block name="body"}
+  {notempty name="list"}
+  <table class="layui-table margin-top-10" lay-skin="line">
+    <thead>
+      <th class="list-table-check-td think-checkbox">
+        <label><input data-auto-none data-check-target=".list-check-box" type="checkbox"></label>
+      </th>
+      <th class="text-left nowrap">权限信息</th>
+      <th class="text-left nowrap">创建时间</th>
+      <th class="text-center nowrap">状态</th>
+      <th></th>
+    </thead>
+    <tbody>
+      {foreach  $list as $vo}
+      <tr data-dbclick>
+        <td class="list-table-check-td think-checkbox">
+          <label><input class="list-check-box" value='{$vo.id}' type='checkbox'></label>
+        </td>
+        <td class="text-left">
+          角色名称: {$vo.name|default=""}</br>
+          <span class="color-desc">权限描述: {$vo.desc|default=""}</span>
+        </td>
+        <td class="text-left nowrap">
+          日期: {$vo.create_time|date="Y-m-d"}</br>
+          <span class="color-desc">时间: {$vo.create_time|date="H:i:s"}</span>
+        </td>
+        <td class="text-center nowrap">
+          <span class="{if $vo.status==2}color-red{else/}color-green{/if}">{$model::$status[$vo.status]}</span>
+        </td>
+        <td>
+          {if check('edit')}
+          <a data-dbclick class="layui-btn layui-btn-sm" data-title="编辑" data-modal='{:url("admin/rule/edit")}?id={$vo.id}'>编 辑</a>
+          {/if}
+          {if check('apply')}
+          <a class="layui-btn layui-btn-normal layui-btn-sm" data-open='{:url("admin/rule/apply")}?id={$vo.id}'>授 权</a>
+          {/if}
+          {if check('forbid') && $vo.status == 1}
+          <a class="layui-btn layui-btn-primary layui-btn-sm" data-action="{:url('forbid', ['id' => $vo.id])}" data-csrf="{:sysCsrfToken('admin/rule/forbid')}">禁 用</a>
+          {elseif check('resume')/}
+          <a class="layui-btn layui-btn-warm layui-btn-sm" data-action="{:url('resume', ['id' => $vo.id])}" data-csrf="{:sysCsrfToken('admin/rule/resume')}">启 用</a>
+          {/if}
+          {if check('remove')}
+          <a class="layui-btn layui-btn-danger layui-btn-sm" data-confirm="确定要删除数据吗?" data-action="{:url('remove', ['id' => $vo.id])}"  data-csrf="{:sysCsrfToken('admin/rule/remove')}">删 除</a>
+          {/if}
+        </td>
+      </tr>
+      {/foreach}
+    </tbody>
+  </table>
+  {$page|raw}
+  {else/}
+  <span class="notdata">没有记录哦</span>
+  {/notempty}
+{/block}

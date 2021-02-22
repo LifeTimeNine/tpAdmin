@@ -1,0 +1,22 @@
+<form class="layui-form layui-card" action="{:request()->url()}" data-auto="true" method="post" autocomplete="off">
+
+  <div class="layui-card-body padding-left-40">
+      <div class="layui-form-item">
+          <label class="relative block">
+              <span class="color-green font-w7">当前用户密码</span>
+              <span class="color-desc margin-left-5">Old Password</span>
+              <input type="password" autofocus name="password" value='' pattern="^\S{1,}$" required placeholder="请输入登录密码" class="layui-input">
+          </label>
+          <p class="color-desc">请输入当前登录用户的密码以验证身份</p>
+      </div>
+
+  </div>
+
+  <div class="hr-line-dashed"></div>
+  {notempty name='vo.id'}<input type='hidden' value='{$vo.id}' name='id'>{/notempty}
+
+  <div class="layui-form-item text-center">
+      <button class="layui-btn" type='submit'>提交</button>
+      <button class="layui-btn layui-btn-danger" type='button' data-confirm="确定要取消编辑吗？" data-close>取消编辑</button>
+  </div>
+</form>

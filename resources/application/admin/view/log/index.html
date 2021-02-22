@@ -1,0 +1,117 @@
+{extend name="body"}
+
+{block name="button"}
+{if check("clear")}
+<button data-load='{:url("clear")}' data-csrf="{:sysCsrfToken('remove')}" data-confirm="确定要消除所有日志吗？" class='layui-btn layui-btn-sm layui-btn-primary'>清理日志</button>
+{/if}
+
+{if check('remove')}
+<button data-action='{:url("remove")}' data-rule="id#{key}" data-csrf="{:sysCsrfToken('remove')}" data-confirm="确定要删除日志吗？" class='layui-btn layui-btn-sm layui-btn-primary'>删除日志</button>
+{/if}
+{/block}
+
+{block name="search"}
+<fieldset>
+  <legend>条件搜索</legend>
+  <form class="layui-form layui-form-pane form-search" action="{:request()->url()}" onsubmit="return false" method="get" autocomplete="off">
+
+      <div class="layui-form-item layui-inline">
+          <label class="layui-form-label">操作账号</label>
+          <div class="layui-input-inline">
+              <input name="username" value="{$Think.get.username|default=''}" placeholder="请输入操作账号" class="layui-input">
+          </div>
+      </div>
+
+      <div class="layui-form-item layui-inline">
+          <label class="layui-form-label">操作节点</label>
+          <div class="layui-input-inline">
+              <input name="node" value="{$Think.get.node|default=''}" placeholder="请输入操作节点" class="layui-input">
+          </div>
+      </div>
+
+      <div class="layui-form-item layui-inline">
+          <label class="layui-form-label">操作行为</label>
+          <div class="layui-input-inline">
+              <input name="action" value="{$Think.get.action|default=''}" placeholder="请输入操作行为" class="layui-input">
+          </div>
+      </div>
+
+      <div class="layui-form-item layui-inline">
+          <label class="layui-form-label">操作描述</label>
+          <div class="layui-input-inline">
+              <input name="desc" value="{$Think.get.desc|default=''}" placeholder="请输入操作内容" class="layui-input">
+          </div>
+      </div>
+
+      <div class="layui-form-item layui-inline">
+          <label class="layui-form-label">位置地址</label>
+          <div class="layui-input-inline">
+              <input name="ip" value="{$Think.get.ip|default=''}" placeholder="请输入位置地址" class="layui-input">
+          </div>
+      </div>
+
+      <div class="layui-form-item layui-inline">
+          <label class="layui-form-label">操作时间</label>
+          <div class="layui-input-inline">
+              <input data-date-range name="create_time" value="{$Think.get.create_time|default=''}" placeholder="请选择操作时间" class="layui-input">
+          </div>
+      </div>
+
+      <div class="layui-form-item layui-inline">
+          <button class="layui-btn layui-btn-primary"><i class="layui-icon">&#xe615;</i> 搜 索</button>
+      </div>
+  </form>
+</fieldset>
+<script>form.render()</script>
+{/block}
+
+{block name="body"}
+{notempty name='list'}
+<table class="layui-table margin-top-10" lay-skin="line">
+  <thead>
+  <tr>
+      <th class='list-table-check-td think-checkbox'>
+          <input data-auto-none data-check-target='.list-check-box' type='checkbox'>
+      </th>
+      <th class='text-left nowrap'>操作权限</th>
+      <th class='text-left nowrap'>操作行为</th>
+      <th class='text-left nowrap'>地理位置</th>
+      <th class='text-left nowrap'>操作时间</th>
+      <th></th>
+  </tr>
+  </thead>
+  <tbody>
+  {foreach $list as $key=>$vo}
+  <tr data-dbclick>
+      <td class='list-table-check-td think-checkbox'>
+          <input class="list-check-box" value='{$vo.id}' type='checkbox'>
+      </td>
+      <td class="text-left nowrap">
+          <span class="font-w7">{$vo.username|default='-'}</span><br>
+          <span class="color-desc">{$vo.node|default='-'}</span>
+      </td>
+      <td class='text-left nowrap'>
+          <p class="color-text">{$vo.action|default='-'}</p>
+          <p class="color-desc">{$vo.desc|default='-'}</p>
+      </td>
+      <td class='text-left nowrap'>
+          <p class="color-text">{$vo.ip|default='-'}</p>
+          <p class="color-desc">{$vo.location|default='-'}</p>
+      </td>
+      <td class='text-left nowrap'>
+          日期：{$vo.create_time|date="Y-m-d"|default=""}<br><span class="color-desc">时间：{$vo.create_time|date="H:i:s"|default=""}</span>
+      </td>
+      <td class='text-left nowrap'>
+          {if check("remove")}
+          <a data-dbclick class="layui-btn layui-btn-sm layui-btn-danger" data-confirm="确定要删除该日志吗？" data-action="{:url('remove', ['id' => $vo.id])}" data-csrf="{:sysCsrfToken('remove')}">删 除</a>
+          {/if}
+      </td>
+  </tr>
+  {/foreach}
+  </tbody>
+</table>
+{$page|raw}
+{else/}
+<span class="notdata">没有记录哦</span>
+{/notempty}
+{/block}

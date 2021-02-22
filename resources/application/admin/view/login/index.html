@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{block name="title"}{$title|default=''}{if !empty($title)} · {/if}{:sysConfig('site_name')}{/block}</title>
+  {css href="/static/plugs/awesome/fonts.css"}
+  {css href="/static/plugs/layui/css/layui.css"}
+  {css href="/static/theme/console/css/console.css"}
+  {css href="/static/theme/console/css/login.css"}
+  {js href="/static/plugs/jquery/pace.min.js"}
+</head>
+<body>
+  <div class="login-container" data-supersized="/static/theme/console/img/login/bg1.jpg,/static/theme/console/img/login/bg2.jpg">
+    <div class="header notselect layui-hide-xs">
+        <a href="{:url('@')}" class="title">{:sysConfig('app_name')}<span class="padding-left-5 font-s10">{:sysConfig('app_version')}</span></a>
+        {notempty name='devmode'}
+        <a class="pull-right layui-anim layui-anim-fadein" href='https://gitee.com/zoujingli/ThinkAdmin'>
+            <img src='https://gitee.com/zoujingli/ThinkAdmin/widgets/widget_1.svg' alt='Fork me on Gitee'>
+        </a>
+        {/notempty}
+    </div>
+    <form data-login-form onsubmit="return false" method="post" class="layui-anim layui-anim-upbit" autocomplete="off">
+        <h2 class="notselect">系统管理</h2>
+        <ul>
+            <li class="username">
+                <label>
+                    <i class="layui-icon layui-icon-username"></i>
+                    <input class="layui-input" required pattern="^\S{4,}$" name="username" autofocus autocomplete="off" placeholder="登录账号" title="请输入登录账号">
+                </label>
+            </li>
+            <li class="password">
+                <label>
+                    <i class="layui-icon layui-icon-password"></i>
+                    <input class="layui-input" required pattern="^\S{4,}$" name="password" maxlength="32" type="password" autocomplete="off" placeholder="登录密码" title="请输入登录密码">
+                </label>
+            </li>
+            <li class="verify layui-hide">
+                <label class="inline-block relative">
+                    <i class="layui-icon layui-icon-picture-fine"></i>
+                    <input class="layui-input" required pattern="^\S{4,}$" name="verify" maxlength="4" autocomplete="off" placeholder="验证码" title="请输入验证码">
+                </label>
+                <label data-captcha="{:url('admin/login/captcha',[],false)}" data-field-verify="verify" data-field-uniqid="uniqid" data-captcha-type="{$captcha_type}" data-captcha-token="{$captcha_token}"></label>
+            </li>
+            <li class="text-center padding-top-20">
+                <button type="submit" class="layui-btn layui-disabled full-width" data-form-loaded="立即登入">正在载入</button>
+            </li>
+        </ul>
+    </form>
+    <div class="footer notselect">
+        <p class="layui-hide-xs"><a target="_blank" href="https://www.google.cn/chrome">推荐使用谷歌浏览器</a></p>
+        {:sysConfig('site_copy')}
+        {if sysConfig('miitbeian')}<span class="padding-5">|</span><a target="_blank" href="http://beian.miit.gov.cn">{:sysConfig('miitbeian')}</a>{/if}
+    </div>
+</div>
+  {js href="/static/plugs/layui/layui.all.js"}
+  {js href="/static/plugs/require/require.js"}
+  {js href="/static/main.js"}
+  {js href="/static/plugs/supersized/supersized.3.2.7.min.js"}
+  {js href="/static/login.js"}
+</body>
+</html>

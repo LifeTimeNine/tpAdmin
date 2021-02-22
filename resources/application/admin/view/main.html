@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="renderer" content="webkit">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=0.4">
+  <title>{block name="title"}{$title|default=''}{if !empty($title)} · {/if}{:sysConfig('site_name')}{/block}</title>
+  <link rel="shortcut icon" href="{if !empty(sysConfig('site_icon'))}{:sysConfig('site_icon')}{else/}favicon.ico{/if}" type="">
+  {css href="/static/plugs/awesome/fonts.css"}
+  {css href="/static/plugs/layui/css/layui.css"}
+  {css href="/static/theme/console/css/console.css"}
+  {js href="/static/plugs/jquery/pace.min.js"}
+</head>
+
+<body class="layui-layout-body">
+  <div class="layui-layout layui-layout-admin">
+    <!-- 顶部菜单 begin -->
+    <div class="layui-header notselect">
+      <a href="{:url('@admin')}" class="layui-logo layui-elip">
+        {:sysConfig('app_name')} <sup class="padding-left-5">{:sysConfig('app_version')}</sup>
+      </a>
+      <ul class="layui-nav layui-layout-left">
+        <li class="layui-nav-item" lay-unselect>
+          <a class="text-center" data-target-menu-type>
+            <i class="layui-icon layui-icon-spread-left"></i>
+          </a>
+        </li>
+        {foreach $menu as $menu1}
+        <li class="layui-nav-item">
+          <a data-menu-node="m-{$menu1.id}" data-open="{$menu1.url}">
+            <span class="{$menu1.icon} padding-right-5"></span>
+            <span>{$menu1.title}</span>
+          </a>
+        </li>
+        {/foreach}
+      </ul>
+      <ul class="layui-nav layui-layout-right">
+        <li class="layui-nav-item" lay-unselect>
+          <a data-reload><i class="layui-icon layui-icon-refresh-3"></i></a>
+        </li>
+        <li class="layui-nav-item">
+          <dl class="layui-nav-child">
+            <dd lay-unselect><a data-modal="{:url('admin/user/info',['id'=>session('sys_user.id')])}"><i class="layui-icon layui-icon-set-fill margin-right-5"></i>基本资料</a></dd>
+            <dd lay-unselect><a data-modal="{:url('admin/user/pass',['id'=>session('sys_user.id')])}"><i class="layui-icon layui-icon-component margin-right-5"></i>修改密码</a></dd>
+            <dd lay-unselect>
+              <a data-confirm="确定退出登录吗" data-load="{:url('admin/login/out')}"><i
+                  class="layui-icon layui-icon-release margin-fight-5">退出登录</i></a>
+            </dd>
+          </dl>
+          <a><span><i class="layui-icon layui-icon-username margin-right-5"></i> {:session('sys_user.username')}</span></a>
+        </li>
+      </ul>
+    </div>
+    <!-- 顶部菜单 end -->
+
+    <!-- 左侧菜单 begin -->
+    <div class="layui-side layui-bg-black notselect">
+      <div class="layui-side-scroll">
+        {foreach $menu as $menu1}
+        {notempty name="$menu1.sub"}
+        <ul class="layui-nav layui-nav-tree" data-menu-layout="m-{$menu1.id}">
+          {foreach $menu1.sub as $menu2}
+          {if empty($menu2.sub)}
+          <li class="layui-nav-item">
+            <a data-target-tips="{$menu2.title}" data-menu-node="m-{$menu1.id}-{$menu2.id}" data-open="{$menu2.url}">
+              <span class="{$menu2.icon|default='layui-icon layui-icon-link'}"></span>
+              <span class="nav-text padding-left-5">{$menu2.url}</span>
+            </a>
+          </li>
+          {else /}
+          <li class="layui-nav-item" data-submenu-layout="m-{$menu1.id}-{$menu2.id}">
+            <a data-target-tips="{$menu2.title}">
+              <span class="nav-icon {$menu2.icon|default='layui-icon layui-icon-triangle-d'}"></span>
+              <span class="nav-text padding-left-5">{$menu2.title}</span>
+            </a>
+            <dl class="layui-nav-child">
+              {foreach $menu2.sub as $menu3}
+              <dd>
+                <a data-target-tips="{$menu3.title}" data-open="{$menu3.url}" data-menu-node="m-{$menu1.id}-{$menu2.id}-{$menu3.id}">
+                  <span class="nav-icon padding-left-5 {$menu3.icon|default='layui-icon layui-icon-link'}"></span>
+                  <span class="nav-text padding-left-5">{$menu3.title}</span>
+                </a>
+              </dd>
+              {/foreach}
+            </dl>
+          </li>
+          {/if}
+          {/foreach}
+        </ul>
+        {/notempty}
+        {/foreach}
+      </div>
+    </div>
+    <!-- 左侧菜单 end -->
+
+    <!-- 主体内容 begin -->
+    <div class="layui-body layui-gray layui-bg-gray">
+      {block name="body"}{/block}
+    </div>
+    <!-- 主体内容 end -->
+  </div>
+</body>
+{js href="/static/plugs/layui/layui.all.js"}
+{js href="/static/plugs/require/require.js"}
+{js href="/static/main.js"}
+</html>

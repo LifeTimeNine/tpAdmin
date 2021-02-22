@@ -1,0 +1,94 @@
+{extend name="body"}
+
+{block name="button"}
+{if check("refresh")}
+<button data-load='{:url("refresh")}' class='layui-btn layui-btn-sm layui-btn-primary'>刷新权限</button>
+{/if}
+{/block}
+
+{block name="body"}
+<ul id="zTree" class="ztree notselect"></ul>
+<div class="hr-line-dashed"></div>
+<div class="layui-form-item text-center">
+  <button class="layui-btn" data-submit-role type='button'>保存数据</button>
+  <button class="layui-btn layui-btn-danger" type='button' onclick="window.history.back()">取消编辑</button>
+</div>
+{/block}
+
+{block name="script"}
+<script>
+  require(['jquery.ztree'], function () {
+    var ztree, setting = {
+      view: {
+        showIcon: false,
+        dblClickExpand: false
+      },
+      check: {
+        enable: true,
+        chkStyle: "checkbox",
+        nocheck: false,
+        chkboxType: {
+          "Y": "ps",
+          "N": "ps"
+        }
+      },
+      callback: {
+        beforeClick: function (id, node) {
+          !node.children || node.children.length < 1 ? ztree.checkNode(node, !node.checked, null, true) : ztree
+            .expandNode(node);
+          return false;
+        },
+      }
+    };
+    $.form.load('{:url("getNode")}', {id: {$id}}, 'post', function (ret) {
+      ztree = $.fn.zTree.init($('#zTree'), setting, ret.data);
+      return false;
+    })
+    // 提交表单
+    $('[data-submit-role]').on('click', function () {
+      let data = ztree.getCheckedNodes(true).map(v => v.node);
+      $.form.load('{:url("apply")}', {data: data, id: {$id}}, 'post');
+    });
+  })
+</script>
+{/block}
+
+{block name="style"}
+{//css href="/static/plugs/ztree/zTreeStyle/zTreeStyle.css"}
+<style>
+  ul.ztree li {
+    white-space: normal !important;
+  }
+
+  ul.ztree li span.button.switch {
+    margin-right: 5px;
+  }
+
+  ul.ztree ul ul li {
+    display: inline-block;
+    white-space: normal;
+  }
+
+  ul.ztree>li {
+    padding: 15px 25px 15px 15px;
+  }
+
+  ul.ztree>li>ul {
+    margin-top: 12px;
+    border-top: 1px solid rgba(0, 0, 0, .1);
+  }
+
+  ul.ztree>li>ul>li {
+    padding: 5px;
+  }
+
+  ul.ztree>li>a>span {
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  ul.ztree .level2 .button.level2 {
+    background: 0 0;
+  }
+</style>
+{/block}
