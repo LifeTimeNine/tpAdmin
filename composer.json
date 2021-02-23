@@ -14,7 +14,7 @@
     ],
     "license": "MIT",
     "require": {
-        "lifetime/service": "1.6.*"
+        "lifetime/service": "1.7.*"
     },
     "autoload": {
         "psr-4": {
