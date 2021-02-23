@@ -198,7 +198,6 @@ class Controller extends \stdClass
      * @param   string  $model      操作模型名称
      * @param   boolean $softDelete 是否软删除
      * @param   string  $field      主键字段
-     * @param   array   $where      额外条件
      */
     protected function _delete($model = '', $softDelete = true, $field = '')
     {

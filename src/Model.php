@@ -2,7 +2,6 @@
 
 namespace tpadmin;
 
-use think\facade\Request;
 use think\Model as ThinkModel;
 use think\model\concern\SoftDelete;
 

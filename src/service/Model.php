@@ -128,7 +128,7 @@ class Model extends Service
      * @param   string          $alias      别名分隔符
      * @return  $this
      */
-    public function _neq($fields, $type = 'param', $alias = '@')
+    public function _notEq($fields, $type = 'param', $alias = '@')
     {
         $this->parseWhere($fields, $type, $alias, function ($dk, $value) {
             $this->modelObj->where($dk, '<>', $value);
