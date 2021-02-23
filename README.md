@@ -48,6 +48,38 @@ php think tpadmin:install
 ## 控制器
 > 后台管理页面的控制器建议继承 tpadmin\Controller 类。
 
+后台权限基于注解实现
+auth 是否验证此节点
+menu 是否是菜单
+示例：
+```php
+<?php
+namespace app\index\controller;
+
+use tpadmin\Controller;
+
+/**
+ * 首页
+ * @calss Index
+ */
+class Index extends Controller
+{
+  /**
+   * 首页
+   * @auth  true
+   * @menu  true
+  */
+  public function index()
+  {
+    if (1 == 0) {
+      $this->success('1等于0'); // 返回成功消息
+    } else {
+      $this->error('1不等于0'); // 返回失败消息
+    }
+  }
+}
+```
+
 > $this->title 可以设置当前页面的标题
 
 ### success/error 返回 成功/失败 的消息
