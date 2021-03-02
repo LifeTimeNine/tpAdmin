@@ -7,13 +7,14 @@ define(function () {
             proindex: 0,
             elem: element,
             auto: false,
+            accept: 'file',
+            exts: exts.split(',').join('|'),
             choose: function (obj) {
                 obj.preview(function(index, file) {
                     $.ajax({
                         type: "post", url: "/upload/uploadCheck",data: {fileName: file.name, fileSize: file.size},
                         success: function (ret) {
                             if (ret.code == '0') {
-                                console.log(ret)
                                 $.msg.error(ret.msg);
                                 return;
                             };
@@ -34,9 +35,6 @@ define(function () {
                 });
             }
         };
-        if (exts == '*') {
-            uploadOptions.accept = 'file';
-        }
         layui.upload.render(uploadOptions);
         function uploader(uploadParam,file, progressFilter) {
             var header = uploadParam.header ? keyValToObj(uploadParam.header) : {};
@@ -75,7 +73,7 @@ define(function () {
             var taskNumber = -1;
             var etags = [];
             var totalSize = file.size;
-            var completeSize = 0;
+            var completeSize = [];
 
             var getOptions = function(beginPartNumber, endPartNumber) {
                 $.ajax({
@@ -100,22 +98,20 @@ define(function () {
             var shardUpload = function (url, header, data, partNumber) {
                 if (error) return
                 taskNumber+= (taskNumber==-1?2:1);
+                completeSize[partNumber] = 0;
                 $.ajax({
                     type: "put",url: url,data: data,headers: header,processData: false,
                     contentType: 'application/octet-stream',
                     xhr: function() {
                         var xhr = $.ajaxSettings.xhr();
                         if (xhr.upload) xhr.upload.addEventListener('progress', function (e) {
-                            layui.element.progress(progressFilter, Math.floor((completeSize+e.loaded)/totalSize*100) + '%');
-                            if (e.loaded == e.total) {
-                                completeSize += e.loaded;
-                            }
+                            completeSize[partNumber] = e.loaded;
+                            layui.element.progress(progressFilter, Math.floor(eval(completeSize.join('+'))/totalSize*100) + '%');
                         });
                         return xhr;
                     },
                     success: function (response,status, xhr) {
                         taskNumber--;
-                        console.log(response)
                         let etag = xhr.getResponseHeader('ETag') || response.etag;
                         etags[partNumber] = etag;
                         initUpload();
@@ -134,7 +130,6 @@ define(function () {
                     shardUpload(options.url, keyValToObj(options.header ? options.header : []), file.slice(shardSize*(options.partNumber-1), shardSize*options.partNumber), options.partNumber);
                 }
                 if (shardOptionsList.length == 0 && shardList.length == 0 && taskNumber == 0) {
-                    console.log(etags)
                     shardComplete();
                 }
                 if (shardOptionsList.length <= 1) {

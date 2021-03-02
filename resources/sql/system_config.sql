@@ -18,7 +18,7 @@ INSERT INTO `system_config` VALUES (3, 'app_version', 'dev');
 INSERT INTO `system_config` VALUES (4, 'miitbeian', '无');
 INSERT INTO `system_config` VALUES (5, 'site_copy', '无');
 INSERT INTO `system_config` VALUES (6, 'storage_allowExts', 'jpg|jpeg|png|gif|zip|txt');
-INSERT INTO `system_config` VALUES (7, 'storage_driver', 'Oss');
+INSERT INTO `system_config` VALUES (7, 'storage_driver', 'Local');
 INSERT INTO `system_config` VALUES (8, 'storage_local_savePath', '/uploads');
 INSERT INTO `system_config` VALUES (9, 'site_icon', 'http://lifetime-tpadmin.oss-cn-beijing.aliyuncs.com/20210127/5c1cb94d00d08b8254bedf5c8d1b5fbb.png');
 INSERT INTO `system_config` VALUES (10, 'storage_forbidExts', 'php|sh');

@@ -69,13 +69,13 @@
           <li class="layui-nav-item">
             <a data-target-tips="{$menu2.title}" data-menu-node="m-{$menu1.id}-{$menu2.id}" data-open="{$menu2.url}">
               <span class="{$menu2.icon|default='layui-icon layui-icon-link'}"></span>
-              <span class="nav-text padding-left-5">{$menu2.url}</span>
+              <span class="nav-text padding-left-5">{$menu2.title}</span>
             </a>
           </li>
           {else /}
           <li class="layui-nav-item" data-submenu-layout="m-{$menu1.id}-{$menu2.id}">
             <a data-target-tips="{$menu2.title}">
-              <span class="nav-icon {$menu2.icon|default='layui-icon layui-icon-triangle-d'}"></span>
+              <span class="nav-icon layui-hide {$menu2.icon|default='layui-icon layui-icon-triangle-d'}"></span>
               <span class="nav-text padding-left-5">{$menu2.title}</span>
             </a>
             <dl class="layui-nav-child">

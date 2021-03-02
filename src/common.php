@@ -101,5 +101,6 @@ if (class_exists('think\Route')) {
 if (class_exists('think\Console')) {
     Console::addDefaultCommands([
         'tpadmin\command\Install', // 安装指令
+        'tpadmin\command\Update', // 更新指令
     ]);
 }

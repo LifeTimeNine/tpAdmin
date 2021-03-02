@@ -215,7 +215,7 @@ class Controller extends \stdClass
     protected function _form($model = '', $template = '', $validate = '', $field = '')
     {
         if (empty($model)) $model = $this->model;
-        if (!empty($validate) && strpos($validate, '.') == 0) {
+        if (!empty($validate) && strpos($validate, '.') === 0) {
             $validate = $this->validate . $validate;
         } elseif (empty($validate)) {
             $validate = $this->validate;

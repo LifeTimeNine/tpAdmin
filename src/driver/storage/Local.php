@@ -96,10 +96,10 @@ class Local
      */
     public function saveFile()
     {
-        $toekn = request()->param('token');
+        $token = request()->param('token');
         $saveName = request()->param('fileName');
         $file = request()->file('file');
-        if ($this->checkFile($file, $toekn) !== true) return [false, '文件验证失败,请稍后再试！'];
+        if ($this->checkFile($file, $token) !== true) return [false, '文件验证失败,请稍后再试！'];
         $savePath = env('root_path') . "/public/{$this->savePath}/";
         if ($file->move($savePath, $saveName)) {
             return [true, ['url' => request()->domain()."/{$this->savePath}/{$saveName}"]];

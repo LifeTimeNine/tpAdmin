@@ -17,7 +17,7 @@ class Install extends Command
     protected function configure()
     {
         $this->setName('tpadmin:install')
-            ->setDescription('install tpadmin');
+            ->setDescription('安装 tpadmin');
     }
     protected function execute(Input $input, Output $output)
     {
