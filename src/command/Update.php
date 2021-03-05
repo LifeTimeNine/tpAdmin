@@ -34,9 +34,9 @@ class Update extends Command
         if ($input->hasOption('c')) {
             //记录拷贝文件数量
             $file_num = 0;
-            $output->writeln('开始删除控制器文件...');
-            $this->removeDir("{$appPath}/admin");
-            $output->writeln('控制器文件删除完成...');
+            // $output->writeln('开始删除控制器文件...');
+            // $this->removeDir("{$appPath}/admin");
+            // $output->writeln('控制器文件删除完成...');
             $output->writeln('开始复制控制器文件...');
             $this->copyDir("{$resourcesPath}/application", $appPath, $file_num);
             $output->writeln("文件复制完成，共复制 {$file_num} 个文件。");
