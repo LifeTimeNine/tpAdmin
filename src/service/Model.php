@@ -321,14 +321,14 @@ class Model extends Service
         // 启动事务
         Db::startTrans();
         try {
+            $callbackResult = $this->controller->callback('_delete_extra', $where);
+            if (is_string($callbackResult) || $callbackResult === false) {
+                throw new \Exception($callbackResult);
+            }
             if ($softDelete) {
                 $result = $model::destroy($where);
             } else {
                 $result = $model::destroy($where, true);
-            }
-            $callbackResult = $this->controller->callback('_delete_extra', $where);
-            if (is_string($callbackResult) || $callbackResult === false) {
-                throw new \Exception($callbackResult);
             }
             // 提交事务
             Db::commit();

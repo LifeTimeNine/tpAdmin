@@ -32,7 +32,7 @@
         </li>
         {foreach $menu as $menu1}
         <li class="layui-nav-item">
-          <a data-menu-node="m-{$menu1.id}" data-open="{$menu1.url}">
+          <a data-menu-node="m-{$menu1.id}" data-open="{$menu1.url}{notempty name='$menu1.params'}&{$menu1.params}{/notempty}">
             <span class="{$menu1.icon} padding-right-5"></span>
             <span>{$menu1.title}</span>
           </a>
@@ -67,7 +67,7 @@
           {foreach $menu1.sub as $menu2}
           {if empty($menu2.sub)}
           <li class="layui-nav-item">
-            <a data-target-tips="{$menu2.title}" data-menu-node="m-{$menu1.id}-{$menu2.id}" data-open="{$menu2.url}">
+            <a data-target-tips="{$menu2.title}" data-menu-node="m-{$menu1.id}-{$menu2.id}" data-open="{$menu2.url}{notempty name='$menu2.params'}&{$menu2.params}{/notempty}">
               <span class="{$menu2.icon|default='layui-icon layui-icon-link'}"></span>
               <span class="nav-text padding-left-5">{$menu2.title}</span>
             </a>
@@ -81,7 +81,7 @@
             <dl class="layui-nav-child">
               {foreach $menu2.sub as $menu3}
               <dd>
-                <a data-target-tips="{$menu3.title}" data-open="{$menu3.url}" data-menu-node="m-{$menu1.id}-{$menu2.id}-{$menu3.id}">
+                <a data-target-tips="{$menu3.title}" data-open="{$menu3.url}{notempty name='$menu3.params'}&{$menu3.params}{/notempty}" data-menu-node="m-{$menu1.id}-{$menu2.id}-{$menu3.id}">
                   <span class="nav-icon padding-left-5 {$menu3.icon|default='layui-icon layui-icon-link'}"></span>
                   <span class="nav-text padding-left-5">{$menu3.title}</span>
                 </a>
