@@ -61,14 +61,18 @@ class Menu extends Controller
         $this->_form('', 'form');
     }
 
-    protected function _form_filter()
+    protected function _form_filter($data)
     {
         if ($this->request->isGet()) {
             $this->pid = $this->request->param('pid');
             $this->menus = ServiceMenu::instance()->getArrData();
             $this->nodes = Node::instance()->getNode(false, true);
         } else {
-            SystemLog::write('系统管理', '更新菜单');
+            if (isset($data)) {
+                SystemLog::write('系统管理', "更新菜单 [{$data['title']}]");
+            } else {
+                SystemLog::write('系统管理', "新增菜单 [{$data['title']}]");
+            }
         }
     }
 
@@ -103,13 +107,13 @@ class Menu extends Controller
         $this->success('刷新成功');
     }
 
-    protected function _save_extra($data)
+    protected function _save_after($data, $where)
     {
-        SystemLog::write('系统管理', ($data['status'] == 1 ? '启用' : '禁用') . '菜单');
+        SystemLog::write('系统管理', ($data['status'] == 1 ? '启用' : '禁用') . "菜单 [{$this->request->param('id')}]");
     }
 
-    protected function _delete_extra($data)
+    protected function _delete_after($data)
     {
-        SystemLog::write('系统管理', '删除菜单');
+        SystemLog::write('系统管理', "删除菜单 [{$this->request->param('id')}]");
     }
 }

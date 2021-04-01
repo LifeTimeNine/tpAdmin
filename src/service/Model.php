@@ -285,8 +285,12 @@ class Model extends Service
         // 启动事务
         Db::startTrans();
         try {
+            $callbackResult = $this->controller->callback('_save_before', $data, $where);
+            if (is_string($callbackResult) || $callbackResult === false) {
+                throw new \Exception($callbackResult);
+            }
             $result = $model::update($data, $where);
-            $callbackResult = $this->controller->callback('_save_extra', $data, $where);
+            $callbackResult = $this->controller->callback('_save_after', $result);
             if (is_string($callbackResult) || $callbackResult === false) {
                 throw new \Exception($callbackResult);
             }
@@ -321,7 +325,7 @@ class Model extends Service
         // 启动事务
         Db::startTrans();
         try {
-            $callbackResult = $this->controller->callback('_delete_extra', $where);
+            $callbackResult = $this->controller->callback('_delete_before', $where);
             if (is_string($callbackResult) || $callbackResult === false) {
                 throw new \Exception($callbackResult);
             }
@@ -329,6 +333,10 @@ class Model extends Service
                 $result = $model::destroy($where);
             } else {
                 $result = $model::destroy($where, true);
+            }
+            $callbackResult = $this->controller->callback('_delete_after', $where);
+            if (is_string($callbackResult) || $callbackResult === false) {
+                throw new \Exception($callbackResult);
             }
             // 提交事务
             Db::commit();

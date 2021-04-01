@@ -7,6 +7,7 @@ use service\ali\kernel\BasicOss;
 use service\Qiniu;
 use service\qiniu\basic\Storage as BasicStorage;
 use tpadmin\Controller;
+use tpadmin\model\SystemLog;
 use tpadmin\service\Config;
 
 /**
@@ -42,6 +43,7 @@ class Storage extends Controller
                 $this->qiniuHandle($data);
             }
             Config::instance()->set($data);
+            SystemLog::write('系统管理', '编辑文件存储');
             $this->success();
         }
     }

@@ -119,7 +119,7 @@ class Rule extends Controller
             try {
                 SystemRuleNode::where('rid', $id)->delete();
                 (new SystemRuleNode)->saveAll($data);
-                SystemLog::write('系统管理', '角色授权');
+                SystemLog::write('系统管理', "角色授权 [{$id}]");
                 // 提交事务
                Db::commit();
             } catch (\Exception $e) {
@@ -179,20 +179,24 @@ class Rule extends Controller
         $this->success('获取成功', $node);
     }
 
-    protected function _save_extra($data)
+    protected function _save_after($data)
     {
-        SystemLog::write('系统管理', ($data['status'] == 1 ? '启用' : '禁用').'角色');
+        SystemLog::write('系统管理', ($data['status'] == 1 ? '启用' : '禁用')."角色 [{$this->request->param('id')}]");
     }
 
-    protected function _delete_extra()
+    protected function _delete_after()
     {
-        SystemLog::write('系统管理', '删除角色');
+        SystemLog::write('系统管理', "删除角色 [{$this->request->param('id')}]");
     }
 
-    protected function _form_filter()
+    protected function _form_filter($data)
     {
         if ($this->request->isPost()) {
-            SystemLog::write('系统管理', '更新角色');
+            if (isset($data['id'])) {
+                SystemLog::write('系统管理', "更新角色 [{$data['name']}]");
+            } else {
+                SystemLog::write('系统管理', "新增角色 [{$data['name']}]");
+            }
         }
     }
 }

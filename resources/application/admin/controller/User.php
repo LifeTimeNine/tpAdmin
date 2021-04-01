@@ -87,6 +87,7 @@ class User extends Controller
                 $this->error('密码验证失败');
             }
             $this->model::update(['password' => md5('123456')], ['id' => $this->request->param('id')]);
+            SystemLog::write('系统管理', "充值系统密码 [{$this->request->param('id')}]");
             $this->success();
         }
     }
@@ -96,10 +97,12 @@ class User extends Controller
         if ($this->request->isGet()) {
             $this->rules = SystemRule::where('status', 1)->select();
         } else {
-            if (!$this->request->has('id', 'post', true)) {
+            if (!isset($data['id'])) {
                 $data['password'] = md5('123456');
+                SystemLog::write('系统管理', "新增系统用户 [{$data['username']}]");
+            } else {
+                SystemLog::write('系统管理', "编辑系统用户 [{$data['username']}]");
             }
-            SystemLog::write('系统管理', '更新系统用户');
         }
     }
 
@@ -146,12 +149,12 @@ class User extends Controller
         }
     }
 
-    protected function _save_extra($data)
+    protected function _save_after($model)
     {
-        SystemLog::write('系统管理', ($data['status'] == 1 ? '启用' : '禁用').'系统用户');
+        SystemLog::write('系统管理', ($model['status'] == 1 ? '启用' : '禁用')."系统用户 [{$this->request->param('id')}]");
     }
-    protected function _delete_extra()
+    protected function _delete_after()
     {
-        SystemLog::write('系统管理', '删除系统用户');
+        SystemLog::write('系统管理', "删除系统用户 [{$this->request->param('id')}]");
     }
 }

@@ -3,6 +3,7 @@
 namespace app\admin\controller;
 
 use tpadmin\Controller;
+use tpadmin\model\SystemLog;
 use tpadmin\service\Config as ServiceConfig;
 
 /**
@@ -34,6 +35,7 @@ class Config extends Controller
         } else {
             $data = $this->request->only(['site_name','app_name', 'app_version', 'miitbeian', 'site_copy', 'site_icon']);
             ServiceConfig::instance()->set($data);
+            SystemLog::write('系统管理', '修改系统参数配置');
             $this->success();
         }
     }
