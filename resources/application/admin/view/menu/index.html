@@ -1,6 +1,9 @@
 {extend name='body'}
 
 {block name="button"}
+{if check('refresh')}
+<button data-action='{:url("refresh")}' data-title="刷新菜单" class='layui-btn layui-btn-sm layui-btn-primary'>刷新菜单</button>
+{/if}
 {if check('add')}
 <button data-modal='{:url("add")}' data-title="添加菜单" class='layui-btn layui-btn-sm layui-btn-primary'>添加菜单</button>
 {/if}

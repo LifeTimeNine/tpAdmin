@@ -74,7 +74,10 @@ class Local
         if (!is_dir(env('runtime_path') . "/shard/{$uploadId}")) {
             mkdir(env('runtime_path') . "/shard/{$uploadId}", 0777, true);
         }
-        return ['uploadId' => $uploadId, 'filePath' => request()->domain()."/{$this->savePath}/{$saveName}"];
+        return [
+            'uploadId' => $uploadId,
+            'filePath' => request()->domain()."/{$this->savePath}/{$saveName}"
+        ];
     }
     /**
      * 构建token
@@ -123,6 +126,8 @@ class Local
             $options[] = [
                 'url' => url("/upload/shardUpload?uploadId={$uploadId}&partNumber={$i}", [], false, true),
                 'partNumber' => $i,
+                'method' => 'put',
+                'contrentType' => 'application/octet-stream'
             ];
         }
         return [true, $options];

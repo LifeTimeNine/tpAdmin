@@ -28,7 +28,7 @@ class Menu extends Controller
     {
         $this->title = '系统菜单管理';
         $this->list = ServiceMenu::instance()->getArrData();
-        $this->fetch('');
+        $this->fetch();
     }
 
     /**
@@ -66,11 +66,12 @@ class Menu extends Controller
         if ($this->request->isGet()) {
             $this->pid = $this->request->param('pid');
             $this->menus = ServiceMenu::instance()->getArrData();
-            $this->nodes = Node::instance()->getMethodTree(false, 'menu');
+            $this->nodes = Node::instance()->getNode(false, true);
         } else {
             SystemLog::write('系统管理', '更新菜单');
         }
     }
+
     /**
      * 启用菜单
      * @auth    true
@@ -89,6 +90,17 @@ class Menu extends Controller
     {
         $this->checkCsrfToken();
         $this->_delete();
+    }
+
+    /**
+     * 刷新菜单
+     * @auth    true
+     */
+    public function refresh()
+    {
+        $this->checkCsrfToken();
+        Node::instance()->getTree(true);
+        $this->success('刷新成功');
     }
 
     protected function _save_extra($data)

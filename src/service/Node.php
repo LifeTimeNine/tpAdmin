@@ -3,83 +3,43 @@
 namespace tpadmin\service;
 
 use think\facade\App;
+use think\facade\Cache;
+use think\facade\Env;
+use tpadmin\service\Service;
 
 /**
  * 节点服务类
+ * @class Node
  */
 class Node extends Service
 {
+    // 角色节点模型
+    protected $ruleNodeModel = 'model\\SystemRuleNode';
+    /**
+     * 胡忽略的控制器
+     * @var array
+     */
+    protected $ignoreController = ['api'];
 
     /**
-     * 授权节点模型
+     * 基控制器
      * @var string
      */
-    protected $nodeModel = '\\tpadmin\\model\\SystemRuleNode';
+    protected $basicController = 'tpadmin\\Controller';
 
     /**
-     * 忽略的方法
-     * @var array
-     */
-    protected $ignoreMethod = ['__construct', '__debugInfo', 'success', 'error', 'redirect', 'callback', 'fetch'];
-
-    /**
-     * 忽略的控制器
-     * @var array
-     */
-    protected $ignoreController = ['api/'];
-
-    /**
-     * 节点列表
-     * @var array
-     */
-    protected $node = [];
-
-    /**
-     * 获取用户授权节点
-     * @return array
-     */
-    public function getUserRuleNode()
-    {
-        $user = $this->app->session->get('sys_user');
-        $nodeArr = $this->app->session->get('sys_user_rule_node');
-        if (empty($user) || $user['rid'] == 0 || empty($nodeArr)) {
-            if ($user['rid'] == 0) {
-                $nodeArr = array_keys($this->getMethodTree(true));
-                $publicNode = array_diff(array_keys($this->getMethodTree(true)), array_keys($this->getMethodTree(true, 'auth')));
-            } else {
-                $nodeArr = $this->nodeModel::where('rid', $user['rid'])->column('node');
-                $publicNode = array_diff(array_keys($this->getMethodTree()), array_keys($this->getMethodTree(false, 'auth')));
-            }
-            $nodeArr = array_merge($nodeArr, $publicNode);
-            $this->app->session->set('sys_user_rule_node', $nodeArr);
-            return $nodeArr;
-        } else {
-            return $nodeArr;
-        }
-    }
-
-    /**
-     * 检查节点是否授权
+     * 验证节点授权
      * @param   string  $node   节点
      * @return  boolean
      */
     public function check($node)
     {
         $node = $this->fullNode($node);
-        return in_array($node, $this->getUserRuleNode());
+        return in_array($node, $this->getUserNode());
     }
 
     /**
-     * 获取当前节点
-     * @return  string
-     */
-    public function getCurrentNode()
-    {
-        return strtolower("{$this->app->request->module()}/{$this->app->request->controller()}/{$this->app->request->action()}");
-    }
-
-    /**
-     * 获取完整的节点
+     * 补全节点
      * @param   string  $node
      * @return  string
      */
@@ -87,138 +47,209 @@ class Node extends Service
     {
         if (empty($node)) return $this->getCurrentNode();
         if (count(explode('/', $node)) == 1) {
-            return strtolower("{$this->app->request->module()}/{$this->app->request->controller()}/{$node}");
+            return "{$this->getCurrentNode('controller')}/{$node}";
         }
         return $node;
     }
 
     /**
+     * 获取用户授权的节点
+     * @param   \model\SystemUser   系统用户模型实例
+     * @return  array
+     */
+    public function getUserNode(\tpadmin\model\SystemUser $user = null)
+    {
+        if (empty($user)) $user = \tpadmin\model\SystemUser::getCurrentUser();
+        if ($user->rid == 0) {
+            return $this->getNode(true);
+        } else {
+            $ruleNode = $this->ruleNodeModel::getRuleNode($user->rid);
+            return $ruleNode;
+        }
+    }
+
+    /**
+     * 获取当前请求节点
+     * @param   string  $type
+     * @return  string
+     */
+    public function getCurrentNode($type = null)
+    {
+        $request = request();
+        if ($type == 'controller') return "{$request->module()}/{$request->controller(true)}";
+        return "{$request->module()}/{$request->controller(true)}/{$request->action(true)}";
+    }
+
+    /**
+     * 获取节点信息
+     * @param   string  $node   节点
+     * @return  array
+     */
+    public function getNodeInfo($node = '')
+    {
+        $nodeTree = $this->getTree();
+        if(empty($node)) {
+            $request = request();
+            $module = $request->module();
+            $controller = $request->controller(true);
+            $action = $request->action(true);
+        } else {
+            list($module, $controller, $action) = explode('/', strtr($node, '\\', '/'));
+        }
+        return empty($nodeTree[$module][$controller]['action'][$action]) ? [] : $nodeTree[$module][$controller]['action'][$action];
+    }
+
+    /**
      * 获取节点列表
-     * @param   boolean     $force      是否强制刷新
+     * @param   boolean $isAuth 需要验证的节点
+     * @param   boolean $isMenu 菜单节点
+     * @param   boolean $force  强制刷新
      * @return  array
      */
-    public function getTree($force = false)
+    public function getNode($isAuth = false, $isMenu = false, $force = false)
     {
-        $data = [];
-        if (empty($force)) {
-            $data = $this->app->cache->get('system_node');
-            if (is_array($data) && count($data) > 0) return $data;
-        }
-        $appNamespace = $this->app->env->get('APP_NAMESPACE');
-        foreach ($this->scanDir(App::getAppPath()) as $file) {
-            if (preg_match("|/(\w+)/controller/(.+)\.php$|i", $file, $matches)) {
-                list(, $module, $controller) = $matches;
-                foreach ($this->ignoreController as $v) if (stripos($controller, $v) === 0) continue 2;
-                $class = new \ReflectionClass("{$appNamespace}\\{$module}\\controller\\{$controller}");
-                $controller = strtolower($controller);
-                if (!isset($data[$module])) $data[$module] = [];
-                $data[$module][$controller] = array_merge(['method' => []], $this->parseComment($class->getDocComment(), $controller));
-
-                foreach ($class->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-                    if (in_array($method->getName(), $this->ignoreMethod)) continue;
-                    $data[$module][$controller]['method'][strtolower($method->getName())] = $this->parseComment($method->getDocComment(), $method->getName());
-                }
-            }
-        }
-        $this->app->cache->set('system_node', $data);
-        $this->node = $data;
-        return $data;
-    }
-
-    /**
-     * 获取控制器节点
-     * @param   boolean     $force      是否强制刷新
-     * @return array
-     */
-    public function getControllerTree($force = false)
-    {
-        $data = [];
-        $node = empty($this->node) || $force ? $this->getTree(true) : $this->node;
-        foreach ($node as $module => $controllerData) {
-            if (!is_array($controllerData)) continue;
-            foreach ($controllerData as $controller => $v) {
-                $data["{$module}/{$controller}"] = $v['title'];
-            }
-        }
-        return $data;
-    }
-
-    /**
-     * 获取方法节点
-     * @param   boolean     $force      是否强制刷新
-     * @param   string      $condition  条件
-     * @return  array
-     */
-    public function getMethodTree($force = false, $condition = '')
-    {
-        $data = [];
-        $node = empty($this->node) || $force ? $this->getTree(true) : $this->node;
-        foreach ($node as $module => $controllerData) {
-            if (!is_array($controllerData)) continue;
-            foreach ($controllerData as $controller => $v) {
-                if (!is_array($v['method'])) continue;
-                foreach ($v['method'] as $method => $info) {
-                    if (!empty($condition)) {
-                        if (!empty($info[$condition])) $data["{$module}/{$controller}/{$method}"] = $info['title'];
-                    } else {
-                        $data["{$module}/{$controller}/{$method}"] = $info['title'];
+        $nodeList = $this->getTree($force);
+        $list = [];
+        foreach($nodeList as $module => $moduleInfo) {
+            foreach($moduleInfo as $controller => $controllerInfo) {
+                foreach($controllerInfo['action'] as $action => $actionInfo) {
+                    if ($isAuth && !empty($actionInfo['auth'])) {
+                        $list[] = "{$module}/{$controller}/{$action}";
+                    }
+                    if ($isMenu && !empty($actionInfo['menu'])) {
+                        $list[] = "{$module}/{$controller}/{$action}";
+                    }
+                    if (!$isAuth && !$isMenu) {
+                        $list[] = "{$module}/{$controller}/{$action}";
                     }
                 }
             }
         }
-        return $data;
+        return $list;
     }
 
     /**
-     *  解析节点属性
-     * @param   string  $comment    节点内容
-     * @param   string  $default    默认标题
+     * 获取菜单节点
+     * @param   boolean $force  强制刷新
      * @return  array
      */
-    protected function parseComment($comment, $default = '')
+    public function getMenuNode($force = false)
     {
-        $text = strtr($comment, "\n", ' ');
-        $title = preg_replace('/^\/\*\s*\*\s*\*\s*(.*?)\s*\*.*?$/', '$1', $text);
+        $nodeList = $this->getTree($force);
+        $list = [];
+        foreach($nodeList as $module => $moduleInfo) {
+            foreach($moduleInfo as $controller => $controllerInfo) {
+                foreach($controllerInfo['action'] as $action => $actionInfo) {
+                    if (!empty($actionInfo['menu'])) {
+                        $list["{$module}/{$controller}/{$action}"] = $actionInfo['title'];
+                    }
+                }
+            }
+        }
+        return $list;
+    }
 
-        $data = ['title' => $title ? $title : $default];
-        if (preg_match('/@auth\s*true/i', $text)) $data['auth'] = true;
-        if (preg_match('/@menu\s*true/i', $text)) $data['menu'] = true;
+    /**
+     * 获取节点树
+     * @param   boolean $force  强制刷新
+     * @return  array
+     */
+    public function getTree($force = false)
+    {
+        $node = Cache::get('system_node');
+        if ($node && !$force) {
+            return $node;
+        } else {
+            $node = $this->find();
+            Cache::set('system_node', $node);
+            return $node;
+        }
+    }
+
+    /**
+     * 查找节点
+     * @return array
+     */
+    protected function find()
+    {
+        $data = [];
+        $appNamespace = Env::get('APP_NAMESPACE');
+        $appPath = App::getAppPath();
+        $ignoreAction = get_class_methods($this->basicController);
+        foreach ($this->scanDir($appPath, 1) as $module) {
+            if (!isset($data[$module])) $data[$module] = [];
+            $controllerPath = "{$appPath}/{$module}/controller";
+            foreach ($this->scanDir($controllerPath, 2) as $controller) {
+                $controllerLower = strtolower($controller);
+                if (in_array($controllerLower, $this->ignoreController)) continue;
+                $class = new \ReflectionClass("{$appNamespace}\\{$module}\\controller\\{$controller}");
+                if ($class->getParentClass() === false || $class->getParentClass()->getName() <> $this->basicController) continue;
+                $data[$module][$controllerLower] = array_merge(['action' => []], $this->parseAnnotation($class->getDocComment(), $controller));
+
+                foreach ($class->getMethods(\ReflectionMethod::IS_PUBLIC) as $action) {
+                    if (in_array($action->getName(), $ignoreAction)) continue;
+                    $data[$module][$controllerLower]['action'][$action->getName()] = $this->parseAnnotation($action->getDocComment(), $action->getName(), 2);
+                }
+            }
+        }
         return $data;
     }
 
     /**
-     * 扫描指定目录的文件
-     * @param   string  $path   指定目录
+     * 扫描文件夹
+     * @param   string  $path   目录地址
+     * @param   int     $type   类型 0-所有 1-文件夹 2-文件
      * @param   string  $ext    文件后缀
      * @return  array
      */
-    protected function scanDir($path, $ext = 'php')
+    protected function scanDir($path, $type = 0, $ext = 'php')
     {
-        $data = [];
-        foreach (glob("{$path}*") as $item) {
-            if (is_dir($item)) {
-                $data = array_merge($data, $this->scanDir("{$item}/"));
-            } elseif (is_file($item) && pathinfo($item, PATHINFO_EXTENSION) == $ext) {
-                $data[] = strtr($item, '\\', '/');
+        if (!is_dir($path)) return [];
+        $list = [];
+        foreach (scandir($path) as $item) {
+            if ($item == '.' || $item == '..') continue;
+            if ($type == 0 || ($type == 1 && is_dir("{$path}/{$item}"))) {
+                $list[] = $item;
+                continue;
+            }
+            $pathinfo = pathinfo("{$path}/{$item}");
+            if ($type == 2 && is_file("{$path}/{$item}") && $pathinfo['extension'] == $ext) {
+                $list[] = $pathinfo['filename'];
             }
         }
-        return $data;
+        return $list;
     }
 
     /**
-     * 驼峰转下划线规则
-     * @param string $node 节点名称
-     * @return string
+     * 解析注释
+     * @param   string  $annotation     注释内容
+     * @param   string  $default        默认标题
+     * @param   int     $type           类型 1-类注释 2-方法注释
+     * @return  array
      */
-    protected function parseString($node)
+    protected function parseAnnotation($annotation, $default = '', $type = 1)
     {
-        if (count($nodes = explode('/', $node)) > 1) {
-            $dots = [];
-            foreach (explode('.', $nodes[1]) as $dot) {
-                $dots[] = trim(preg_replace("/[A-Z]/", "_\\0", $dot), "_");
+        $text = strtr($annotation, "\n", ' ');
+        $title = preg_replace('/^\/\*\s*\*\s*\*\s*(.*?)\s*\*.*?$/', '$1', $text);
+        $data = ['title' => $title ? $title : $default];
+        if ($type == 2) {
+            // 是否验证节点
+            if (preg_match('/@auth\s*true/i', $text)) $data['auth'] = true;
+            // 是否在菜单中显示
+            if (preg_match('/@menu\s*true/i', $text)) $data['menu'] = true;
+            // 是否必须登录
+            if (preg_match('/@login\s*false/i', $text)) {
+                $data['login'] = false;
+            } else {
+                $data['login'] = true;
             }
-            $nodes[1] = join('.', $dots);
+            // 允许的请求类型
+            // if (preg_match('/@method\s*((\||get|post|put|delete)*)/i', $text, $method)) {
+            //     $data['method'] = explode('|', $method[1]);
+            // } else {
+            //     $data['method'] = [];
+            // }
         }
-        return strtolower(join('/', $nodes));
+        return $data;
     }
 }

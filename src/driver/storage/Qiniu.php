@@ -76,7 +76,10 @@ class Qiniu
         if ($endPartNumber <= $beginPartNumber) return [false, 'PartNumber identification error'];
         $options = [];
         for($i = $beginPartNumber; $i <= $endPartNumber; $i++) {
-            $options[] = Objects::instance($this->config)->webPartParams('',$saveName,$uploadId,$i);
+            $options[] = array_merge(Objects::instance($this->config)->webPartParams('',$saveName,$uploadId,$i), [
+                'method' => 'put',
+                'contrentType' => 'application/octet-stream'
+            ]);
         }
         return [true, $options];
     }

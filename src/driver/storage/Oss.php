@@ -2,6 +2,7 @@
 
 namespace tpadmin\driver\storage;
 
+use service\ali\oss\Bucket;
 use service\ali\oss\object\Basics;
 use service\ali\oss\object\Multipart;
 use tpadmin\service\Config;
@@ -73,9 +74,19 @@ class Oss
     public function getShardOptions($saveName, $uploadId, $beginPartNumber, $endPartNumber)
     {
         if ($endPartNumber <= $beginPartNumber) return [false, 'PartNumber identification error'];
+        $pathinfo = pathinfo($saveName);
         $options = [];
         for($i = $beginPartNumber; $i <= $endPartNumber; $i++) {
-            $options[] = Multipart::instance($this->config)->webParams('',$saveName,$i,$uploadId);
+            if ($pathinfo['dirname'] == '.') {
+                $fileName = "{$pathinfo['filename']}/{$i}.{$pathinfo['extension']}";
+            } else {
+                $fileName = "{$pathinfo['dirname']}/{$pathinfo['filename']}/{$i}.{$pathinfo['extension']}";
+            }
+            $options[] = array_merge(Basics::instance($this->config)->webPut('', $fileName), [
+                'method' => 'post',
+                'contentType' => 'multipart/form-data',
+                'partNumber' => $i
+            ]);
         }
         return [true, $options];
     }
@@ -89,12 +100,41 @@ class Oss
      */
     public function completeShard($saveName, $uploadId, $data)
     {
-        try {
-            $res = Multipart::instance($this->config)->complete('', $saveName, $uploadId, $data);
-        } catch (\Exception $e) {
-            return [false, $e->getMessage()];
+        $pathinfo = pathinfo($saveName);
+        if ($pathinfo['dirname'] == '.') {
+            $tempDir = "{$pathinfo['filename']}/";
+        } else {
+            $tempDir = "{$pathinfo['dirname']}/{$pathinfo['filename']}/";
         }
-        return [true, ['filePath' => $res['Location']]];
+        try {
+            $tempList = Bucket::instance()->basics($this->config)->getV2('', '', '', '', '', 1000, $tempDir);
+            $tempList = $tempList['Contents'];
+            if (count($tempList) <> count($data)) return [false, '文件校验失败 1'];
+            $count = count($tempList);
+            $eTagList = [];
+            $tempFileList = [];
+            for ($i = 1; $i <= $count; $i ++) {
+                $tempItem = $this->getShardItem($tempList, $i);
+                if ($tempItem === false) return [false, '文件上传失败 2'];
+                $tempItem['Key'] = urldecode($tempItem['Key']);
+                $partNumber = pathinfo($tempItem['Key'], PATHINFO_FILENAME);
+                $res = Multipart::instance($this->config)->copy(
+                    '',
+                    $saveName,
+                    $partNumber,
+                    $uploadId,
+                    '',
+                    $tempItem['Key']
+                );
+                $eTagList[$partNumber] = $res['ETag'];
+                $tempFileList[] = $tempItem['Key'];
+            }
+            Multipart::instance($this->config)->complete('', $saveName, $uploadId, $eTagList);
+            Basics::instance($this->config)->deleteMultiple('', $tempFileList);
+        } catch (\Exception $e) {
+            return [false, '文件上传失败' . $e->getMessage()];
+        }
+        return [true, ['filePath' => "{$this->getProtocol()}{$this->config['oss_bucketName']}.{$this->config['oss_endpoint']}/{$saveName}"]];
     }
 
     /**
@@ -104,5 +144,21 @@ class Oss
     protected function getProtocol()
     {
         return empty($this->config['oss_isSsl']) ? 'http://' : 'https://';
+    }
+
+    /**
+     * 根据名称获取切片信息
+     * @param   array   $data
+     * @param   string  $key
+     * @return  array
+     */
+    private function getShardItem($data, $key)
+    {
+        foreach ($data as $item) {
+            if (pathinfo(urldecode($item['Key']), PATHINFO_FILENAME) == $key) {
+                return $item;
+            }
+        }
+        return false;
     }
 }

@@ -151,7 +151,7 @@ class Rule extends Controller
             ];
             foreach ($controllerArr as $controller => $controllerData)
             {
-                if (!$controllerData['method']) continue;
+                if (!$controllerData['action']) continue;
                 $controllerNode = [
                     'name' => $controllerData['title'],
                     'node' => "{$module}/{$controller}",
@@ -159,7 +159,7 @@ class Rule extends Controller
                     'checked' => in_array("{$module}/{$controller}", $ruleNode),
                     'children' => []
                 ];
-                foreach ($controllerData['method'] as $action => $actionData) {
+                foreach ($controllerData['action'] as $action => $actionData) {
                     if (!empty($actionData['auth'])) {
                         $controllerNode['children'][] = [
                             'name' => $actionData['title'],

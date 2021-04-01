@@ -110,7 +110,9 @@ class Storage
     public function getUploadParam($fileName, $fileSize)
     {
         if ($fileSize >= $this->shardSize * 1024 * 1024) {
-            if ($this->driver == 'Oss') return [false, 'OSS 暂不支持分片上传'];
+            if ($this->driver == 'Oss' && $fileSize > $this->shardSize * 1024 * 1024 * 1000) {
+                return [false, '文件过大!'];
+            }
             return [true, $this->bulidShardParams($fileName, $this->bulidFileName($fileName))];
         } else {
             return [true, $this->getDriver()->bulidUploadParams($fileName, $this->bulidFileName($fileName))];
