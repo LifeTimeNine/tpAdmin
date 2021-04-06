@@ -28,7 +28,7 @@ class User extends Controller
         $model->with(['rule']);
         $model->where('rid', '<>', 0);
         $model->_like('username,mobile');
-        $model->_eq('status');
+        $model->_equal('status');
         $model->_timestampBetween('last_login_time');
         $model->_page();
     }

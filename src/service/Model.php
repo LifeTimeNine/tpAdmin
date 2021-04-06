@@ -113,7 +113,7 @@ class Model extends Service
      * @param   string          $alias      别名分隔符
      * @return  $this
      */
-    public function _eq($fields, $type = 'param', $alias = '@')
+    public function _equal($fields, $type = 'param', $alias = '@')
     {
         $this->parseWhere($fields, $type, $alias, function ($dk, $value) {
             $this->modelObj->where($dk, $value);
@@ -128,7 +128,7 @@ class Model extends Service
      * @param   string          $alias      别名分隔符
      * @return  $this
      */
-    public function _notEq($fields, $type = 'param', $alias = '@')
+    public function _notEqual($fields, $type = 'param', $alias = '@')
     {
         $this->parseWhere($fields, $type, $alias, function ($dk, $value) {
             $this->modelObj->where($dk, '<>', $value);

@@ -41,7 +41,7 @@ class Log extends Controller
         }
         $model->order('id', 'desc');
         $model->_like('node,desc');
-        $model->_eq('action');
+        $model->_equal('action');
         $model->_timestampBetween('create_time');
         $model->_page();
     }

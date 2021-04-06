@@ -36,7 +36,7 @@ class Rule extends Controller
         $this->title = '角色列表';
         $model = $this->_model();
         $model->_like('name@name,desc');
-        $model->_eq('status');
+        $model->_equal('status');
         $model->_timestampBetween('create_time');
         $model->_page();
     }
