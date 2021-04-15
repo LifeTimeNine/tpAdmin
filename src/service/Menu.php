@@ -2,8 +2,6 @@
 
 namespace tpadmin\service;
 
-use tpadmin\tools\Data;
-
 /**
  * 菜单服务
  * @class   Menu

@@ -209,8 +209,7 @@ class Index extends Controller
 ```
 ### 额外方法
 
-1. 表单过滤器  
-  在控制器中定义一个非私有（private）的方法 _form_filter ：
+1. 表单过滤器 `_form_filter`  
 
 ```php
 <?php
@@ -246,8 +245,9 @@ class Index extends Controller
   }
 }
 ```
-2. 更新额外操作  
-在控制器中定义一个非私有（private）的方法 _save_extra ：
+1. 更新  
+`_save_before` 更新之前 (\$data -> 更新的数据,\$where -> 更新的条件)  
+`_save_after` 更新之后 (\$result -> 更新结果(模型实例))
 ```php
 <?php
 namespace app\index\controller;
@@ -262,19 +262,20 @@ class Index extends Controller
   {
     $this->_save('\\app\\model\\User',['status'=>1]); // 如果不传入模型名称，默认会使用默认操作模型
   }
-  public function _save_extra($data)
+  public function _save_after($data)
   {
     SystemLog::write('系统管理', ($data['status'] == 1 ? '启用' : '禁用').'系统用户');
   }
   // 也可以指定某个操作方法，会优先执行此方法，并且不会再执行其他的方法
-  public function _index_save_extra($data)
+  public function _index_save_before($result)
   {
 
   }
 }
 ```
-3. 删除额外操作  
-在控制器中定义一个非私有（private）的方法 _delete_extra ：
+1. 删除额外操作  
+`_delete_before` 删除之前 (\$where -> 删除条件)  
+`_delete_after` 删除之后 (\$where -> 删除条件)
 ```php
 <?php
 namespace app\index\controller;
@@ -289,12 +290,12 @@ class Index extends Controller
   {
     $this->_delete('\\app\\model\\User'); // 如果不传入模型名称，默认会使用默认操作模型
   }
-  public function _delete_extra()
+  public function _delete_after()
   {
     SystemLog::write('系统管理', '删除系统用户');
   }
   // 也可以指定某个操作方法，会优先执行此方法，并且不会再执行其他的方法
-  public function _index_delete_extra()
+  public function _index_delete_before()
   {
 
   }
@@ -363,7 +364,7 @@ class Index extends Controller
 }
 >
 ```
-### _eq/_notEq 快捷Eq/NotEq 查询
+### _equal/_notEqual 快捷Eq/NotEq 查询
 使用示例：
 ```php
 <?php
@@ -378,7 +379,7 @@ class Index extends Controller
   public function index()
   {
     $user = $this->_model();
-    $user->_eq('sex,age')->_notEq(['status','lavel']);
+    $user->_equal('sex,age')->_notEqual(['status','lavel']);
     $user->page();
   }
 }
